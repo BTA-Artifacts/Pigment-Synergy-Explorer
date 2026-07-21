@@ -5459,7 +5459,18 @@ async function vjLoad() {
     }
   } catch(e) {}
 }
-
+function vjScaleRoiCompute(result) {
+  if (!result) return null;
+  return Object.assign({}, result, {
+    y1: result.y1 / 1e6,
+    y2: result.y2 / 1e6,
+    y3: result.y3 / 1e6,
+    total3: result.total3 / 1e6,
+    totalInv: result.totalInv / 1e6,
+    net: result.net / 1e6,
+    inv: (result.inv || []).map(function(x){ return x / 1e6; })
+  });
+}
 // ── Compute summary from a saved session state ──
 function vjCompute(state) {
   // Temporarily swap globals, compute, restore
@@ -5497,7 +5508,7 @@ function vjCompute(state) {
   }
 
   var result = null;
-  try { result = roiCompute(); } catch(e) {}
+ try { result = roiCompute(); } catch(e) {}
 
   // Restore globals
   Object.assign(INPUTS, savedInputs);
@@ -5625,7 +5636,7 @@ function vjAddCurrentSession() {
   var currBench = currInps.bench || 50;
   var computed = (vtCurr === 'postimpl' && blCurr && VJ_VERSIONS.length > 0)
     ? vjComputeRealized(blCurr, {inputs: currInps, bench: currBench})
-    : (roiCompute ? roiCompute() : null);
+   : (roiCompute ? vjScaleRoiCompute(roiCompute()) : null);
   VJ_VERSIONS.push({
     label: label,
     type: vtCurr || 'baseline',
